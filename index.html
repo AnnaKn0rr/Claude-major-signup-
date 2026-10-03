@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Major Interest Sign-Up</title>
+<style>
+:root { --bg:#eef2f4; --surface:#fff; --fg:#12202a; --muted:#566772; --line:#cfd9de; --accent:#0b6e8e; --accent-fg:#fff; --ok:#17734a; --err:#b3261e; color-scheme: light dark; }
+@media (prefers-color-scheme: dark) {
+  :root { --bg:#0e171d; --surface:#16232b; --fg:#e6eef2; --muted:#93a6b0; --line:#2a3d48; --accent:#4fb8d8; --accent-fg:#07222c; --ok:#5dd39e; --err:#ff8f86; }
+}
+* { box-sizing: border-box; }
+body { margin:0; background:var(--bg); color:var(--fg); font:16px/1.5 system-ui,-apple-system,"Segoe UI",sans-serif; }
+main { max-width:34rem; margin:0 auto; padding:40px 16px 56px; display:grid; gap:24px; }
+h1 { font-size:clamp(1.7rem,5vw,2.3rem); line-height:1.1; margin:0 0 8px; }
+p.lede { margin:0; color:var(--muted); }
+form { background:var(--surface); border:1px solid var(--line); border-radius:10px; padding:24px; display:grid; gap:18px; }
+label { display:grid; gap:6px; font-weight:600; font-size:.9rem; }
+input { font:inherit; font-weight:400; color:var(--fg); background:var(--bg); border:1px solid var(--line); border-radius:6px; padding:11px 12px; width:100%; min-width:0; }
+input:focus-visible, button:focus-visible { outline:3px solid var(--accent); outline-offset:2px; }
+button { font:inherit; font-weight:600; cursor:pointer; border-radius:6px; padding:11px 18px; border:1px solid var(--accent); background:var(--accent); color:var(--accent-fg); justify-self:start; }
+button:disabled { opacity:.55; cursor:not-allowed; }
+#msg { margin:0; min-height:1.4em; font-size:.9rem; }
+#msg.ok { color:var(--ok); } #msg.err { color:var(--err); }
+.hp { position:absolute; left:-9999px; }
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <h1>Major interest sign-up</h1>
+    <p class="lede">Leave your name, email and the major you're most interested in.</p>
+  </header>
+  <form id="form" novalidate>
+    <label for="name">Full name
+      <input id="name" name="name" type="text" autocomplete="name" placeholder="Jordan Rivera" required maxlength="120">
+    </label>
+    <label for="email">Email
+      <input id="email" name="email" type="email" autocomplete="email" placeholder="jordan@school.edu" required maxlength="200">
+    </label>
+    <label for="major">Major you're interested in
+      <input id="major" name="major" type="text" list="majors" placeholder="Start typing, or enter your own" required maxlength="120">
+      <datalist id="majors">
+        <option value="Computer Science"><option value="Mechanical Engineering"><option value="Electrical Engineering">
+        <option value="Aerospace Engineering"><option value="Biology"><option value="Chemistry"><option value="Physics">
+        <option value="Mathematics"><option value="Business Administration"><option value="Psychology"><option value="English"><option value="Undecided">
+      </datalist>
+    </label>
+    <input class="hp" id="website" name="website" type="text" tabindex="-1" autocomplete="off" aria-hidden="true">
+    <button id="submit" type="submit">Submit</button>
+    <p id="msg" role="status" aria-live="polite"></p>
+  </form>
+</main>
+<script>
+// Paste your Google Apps Script web app URL here (see setup steps).
+var SCRIPT_URL = "PASTE_YOUR_WEB_APP_URL_HERE";
+
+var form = document.getElementById("form"), msg = document.getElementById("msg"), btn = document.getElementById("submit");
+function say(t, k) { msg.textContent = t; msg.className = k || ""; }
+
+form.addEventListener("submit", function (e) {
+  e.preventDefault();
+  var name = form.name.value.trim(), email = form.email.value.trim(), major = form.major.value.trim();
+  if (form.website.value) return; // spam trap
+  if (!name || !email || !major) return say("Fill in your name, email and major.", "err");
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return say("That email address doesn't look right.", "err");
+  if (SCRIPT_URL.indexOf("PASTE_") === 0) return say("This form isn't connected to a sheet yet.", "err");
+  btn.disabled = true; say("Saving…");
+  fetch(SCRIPT_URL, { method: "POST", mode: "no-cors", body: new URLSearchParams({ name: name, email: email, major: major }) })
+    .then(function () { form.reset(); say("Thanks, you're on the list.", "ok"); })
+    .catch(function () { say("Your entry did not save. Check your connection and try again.", "err"); })
+    .then(function () { btn.disabled = false; });
+});
+</script>
+</body>
+</html>
+
